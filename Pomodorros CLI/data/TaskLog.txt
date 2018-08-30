@@ -1,0 +1,98 @@
+Class, Monday, March 26, 2018 12:40:34 PM                
+Productive Score: 1                
+Activated Score : 1                
+Pleasant Score  : 2                
+Emotion: depressed                
+Emotion Score : 9                
+Additional Feedback : I missed my classes this morning...                 
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+Class, Monday, March 26, 2018 12:40:52 PM                
+Productive Score: 4                
+Activated Score : 1                
+Pleasant Score  : 2                
+Emotion: depressed                
+Emotion Score : 7                
+Additional Feedback : I missed my classes this morning                
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+App, Monday, March 26, 2018 12:42:18 PM                
+Productive Score: 1                
+Activated Score : 2.5                
+Pleasant Score  : 2                
+Emotion: bored                
+Emotion Score : 8                
+Additional Feedback : Missed class.                
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+Class, Monday, March 26, 2018 12:43:55 PM                
+Productive Score: 1                
+Activated Score : 2                
+Pleasant Score  : 3                
+Emotion: depressed                
+Emotion Score : 7.5                
+Additional Feedback : Missed class.                
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+Class, Monday, March 26, 2018 12:44:14 PM                
+Productive Score: 1                
+Activated Score : 2                
+Pleasant Score  : 3                
+Emotion: depressed                
+Emotion Score : 7.5                
+Additional Feedback : Missed class.             
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+Class, Monday, March 26, 2018 12:45:50 PM                
+Productive Score: 0                
+Activated Score : 1                
+Pleasant Score  : 2.5                
+Emotion: depressed                
+Emotion Score : 1                
+Additional Feedback : Missed class.                
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
+App, Monday, March 26, 2018 01:41:49 PM                
+Productive Score: 6                
+Activated Score : 7                
+Pleasant Score  : 6                
+Emotion: alert                
+Emotion Score : 7                
+Additional Feedback : Organizied my Documents folder and the project files.                
+Address: 201 River Rd, North Arlington, NJ 07031, USA                
+	Accuracy: 1800.000000                
+	PlaceID: ChIJw0FSqsZVwokRRhYb0k2gr-c                
+	Place Name: 201 River Rd                
+	Location Types: ['street_address']                
+	Url: https://maps.google.com/?q=201+River+Rd,+North+Arlington,+NJ+07031,+USA&ftid=0x89c255c6aa5241c3:0xe7afa04dd21b1646
+
