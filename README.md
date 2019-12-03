@@ -30,7 +30,7 @@ python3 test_suite.py
 
 ## Deployment
 
-One you've downloaded or cloned a copy of PomodorrosCLI (see [Getting Started](#getting-started)), use a text editor or IDE to add the pomcli alias to your environment. On MacOS:
+Once you've downloaded or cloned a copy of PomodorrosCLI (see [Getting Started](#getting-started)), use a text editor or IDE to add the pomcli alias to your environment. On MacOS:
 ```
 cd ~
 open -a "Visual Studio Code" .bash_profile
@@ -40,7 +40,7 @@ Add the following line to create the alias to your pomcli/main.py file:
 ```
 alias pomcli="python3 ~/Desktop/PomodorrosCLI/pomcli/main.py"
 ```
-> `Note`: replace **~/Desktop/PomodorrosCLI/pomcli/main.py** with the location of your pomcli/main.py file*
+> `Note`: replace **~/Desktop/PomodorrosCLI/pomcli/main.py** with the location of your pomcli/main.py file
 Once you've created the alias, save and close the .bash_profile file. Initialize the application with the following terminal command:
 ```
 $ pomcli
@@ -63,7 +63,7 @@ then congratulations! You are all set.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](pomcli/resources/LICENSE.md) file for details
 
 ## Acknowledgments
 
