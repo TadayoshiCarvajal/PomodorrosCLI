@@ -57,7 +57,7 @@ git clone https://github.com/TadayoshiCarvajal/PomodorrosCLI
 
 #### Setup
 
-One you've downloaded or cloned a copy of PomodorrosCLI, use a text editor or IDE to add the pomcli alias to your environment. On MacOS:
+Once you've downloaded or cloned a copy of PomodorrosCLI, use a text editor or IDE to add the pomcli alias to your environment. On MacOS:
 ```
 cd ~
 open -a "Visual Studio Code" .bash_profile
@@ -117,7 +117,7 @@ This command allows the user to change the values of the `settings`.
 $ pomcli settings set rest_length=10
 ```
 
-The above command changes the rest_length setting to 10 minutes.
+The above command changes the `rest_length` setting to 10 minutes.
 Multiple settings can be modified within the same command:
 ```
 $ pomcli settings set rest_length=10 pomodorro_length=20
@@ -136,7 +136,7 @@ This command takes as `options` specific settings:
 ```
 $ pomcli settings show pomodorro_length
 ```
-The above command will display only the `pomodorro_length` setting. Multiple settings can be specified in the same command like in the [`setting set`](#settings-set) command.
+The above command will display only the `pomodorro_length` setting. Multiple settings can be specified in the same command just like in the [`settings set`](#settings-set) command.
 
 ```
 $ pomcli settings show pomodorro_length rest_length
@@ -243,11 +243,11 @@ The `Pomodorro` object represents a block of time dedicated to performing a `Tas
 
 `tag` : str - the distinct and optional alias for this `Pomodorro`.
 
-`goal` : str - a strings that describes what the user wants to accomplish with this `Pomodorro`.
+`goal` : str - a string that describes what the user wants to accomplish with this `Pomodorro`.
 
 > `Note`: the following examples assume that the user has a `Pomodorro` with the `tag` *PomodorroTag*. Alternatively, the `Pomodorro ID` can be used in place of the `tag`.
 
-> `Note`: `pom` serves as an alias to the `Pomodorro` object. The following example utilize this alias.
+> `Note`: `pom` serves as an alias to the `Pomodorro` object. The following examples utilize this alias.
 
 #### Pomodorro Show
 
