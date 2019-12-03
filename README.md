@@ -63,7 +63,7 @@ then congratulations! You are all set.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](pomcli/resources/LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
