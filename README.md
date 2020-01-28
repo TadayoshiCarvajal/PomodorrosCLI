@@ -24,8 +24,8 @@ git clone https://github.com/TadayoshiCarvajal/PomodorrosCLI
 
 There is a test_suite.py file located in the tests directory. It comes equipped with all of the unittests necessary for testing out the class methods within the application. In later versions, additional automated tests will be added as necessary. To run the tests, simply type into the terminal:
 ```
-cd the_path_to_the_pomcli_directory/tests/
-python3 test_suite.py
+cd path_to_directory/PomodorrosCLI
+python3 -m pomcli.tests.test_suite
 ```
 
 ## Deployment
@@ -52,6 +52,8 @@ Successfully intialized PomodorrosCLI!
 ```
 then congratulations! You are all set.
 
+For help on getting started with PomodorrosCLI, please consult the [user manual](pomcli/manual/README.md).
+
 ## Built With
 
 * [curses](https://docs.python.org/3/howto/curses.html) - The CLI tool used in timer mode
@@ -63,7 +65,7 @@ then congratulations! You are all set.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](pomcli/resources/LICENSE.md) file for details
 
 ## Acknowledgments
 
@@ -73,14 +75,12 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 There is a lot more coming to `PomodorrosCLI` that is anticipated by version `1.0.0`. Some of these features include:
 
-* `More Options` - Many more options for the existing commands, including the ability to display how much time has been spent on a particular task, will be added. 
+* `Recurrent Tasks and Pomodorros` - `0.3.0` - `repeats_frequency` to be added which will allow more customization for the user to define when repeating pomodorros are due/expire. Expected: TBD March 2020
 
-* `Migrator Tool` - A tool that will allow users to migrate their pomodorros.db data from version to version.
+* `More Options` - `0.4.0` - Many more options for the existing commands, including the ability to display how much time has been spent on a particular task, will be added. Expected: TBD April 2020
 
-* `Recurrent Tasks and Pomodorros` - `tasks` can be specified as being `recurrent`, which means they will autopopulate `pomodorros` according to their `repeats` frequency.
+* `Recommender System` - `0.5.0` - Machine Learning system that uses historical usage data to predict what task/pomodorro should be worked on at any given time. Expected: TBD May 2020
 
-* `Help object` - An additional command object which will take other command objects and actions as parameters, and display helpful information about them right from the terminal.
+* `Help object` - `0.6.0` - An additional command object which will take other command objects and actions as parameters, and display helpful information about them right from the terminal. Expected: TBD June 2020
 
-* `Task and Pomodorro Priority` - A priority value can be assigned to Tasks and Pomodorros. This will be used in determining the order of how Tasks and Pomodorros are displayed, among other things.
-
-* `Recommender System` - Machine Learning system that uses historical usage data to predict what task/pomodorro should be worked on at any given time.
+* `Migrator Tool` - `0.7.0` - A tool that will allow users to migrate their pomodorros.db data from version to version. Expected: TBD July 2020

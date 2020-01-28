@@ -7,9 +7,9 @@ class Pomodorro:
     and a rest phase. Every pomodorro belongs to a task. In the work phase
     the user diligently works for a prespecified period of time on that task
     and in the rest phase that follows the work phase, the user takes a break."""
-    def __init__(self, pom_id, tag, task_id, length, rest, goal, 
+    def __init__(self, pom_id, tag, task_id, priority, length, rest, goal, 
                         active, completed, start_time, end_time, 
-                        time_spent, historic_tag):
+                        time_spent, historic_tag, expired, due):
         """
         pom_id - int - the integer ID of the pomodorro.
         tag - str/None - the tag of the pomodorro if it exists, else None.
@@ -27,6 +27,7 @@ class Pomodorro:
         self.pom_id = pom_id
         self.tag = tag
         self.task = task_id
+        self.priority = priority
         self.length = length
         self.rest = rest
         self.goal = goal
@@ -36,6 +37,8 @@ class Pomodorro:
         self.end_time = end_time
         self.time_spent = time_spent
         self.historic_tag = historic_tag
+        self.expired = expired
+        self.due = due
 
     def show(self, brief=False):
         """ Display the pomodorro information. """
@@ -50,12 +53,16 @@ class Pomodorro:
         \rPom ID: {self.pom_id}
         \rTag: {self.tag}
         \rGoal: {self.goal}
+        \rPomodorro Length: {self.length//60}
+        \rRest Length: {self.rest//60}
         \rActive: {self.active}
         \rCompleted: {self.completed}
         \rStart Time: {self.start_time}
         \rEnd Time: {self.end_time}
         \rTime Spent: {self.time_spent}
-        \rHistoric Tag: {self.historic_tag}"""
+        \rHistoric Tag: {self.historic_tag}
+        \rDue: {self.due}
+        \rExpired: {self.expired}"""
 
         return s
 
@@ -64,10 +71,15 @@ class Pomodorro:
         task = str(self.task)
         pom_id = str(self.pom_id)
         s = f"{task:^{cw}s}|{pom_id:^{cw}s}"
-        if not history and self.tag:
-            s += f"|{self.tag:^{cw}s}"
+        if not history:
+            tag = str(self.tag)
+            s += f"|{tag:^{cw}s}"
         elif history and self.historic_tag:
             s += f"|{self.historic_tag:^{cw}s}"
+        
+        s += f"|{self.priority:^{cw}d}"
+        s += f"|{self.length//60:^{cw}d}|{self.rest//60:^{cw}d}"
+
         if self.goal:
             s += f"|{self.goal:^{cw}s}"
         return s

@@ -1,8 +1,10 @@
 class Timer:
-    def __init__(self, model, pomodorro_log, pomodorro):
+    def __init__(self, model, task_log, pomodorro_log, pomodorro):
         self.model = model
+        self.task_log = task_log
         self.pomodorro_log = pomodorro_log
         self.active_pomodorro = pomodorro
+        self.active_task = self.task_log.log[self.active_pomodorro.task]
         self.length = self.active_pomodorro.length
         self.rest_length = self.active_pomodorro.rest
 
@@ -35,6 +37,12 @@ class Timer:
         # Set the specified pomodorro to active.
         self.model.set_active_pomodorro(self.active_pomodorro)
         self.active_pomodorro = self.get_active_pomodorro()
+
+        # The number of incomplete pomodorros belonging to the same task.
+        self.pomodorros_of_same_task = len(set([self.pomodorro_log.log[pomodorro].pom_id \
+            for pomodorro in self.pomodorro_log.log \
+            if self.pomodorro_log.log[pomodorro].task == self.active_pomodorro.task \
+            and not self.pomodorro_log.log[pomodorro].completed]))
 
     def switch_state(self):
         """ Transition us to the next state.
@@ -98,7 +106,7 @@ class Timer:
             self.model.reset_pomodorro(self.active_pomodorro)
 
     def complete(self):
-        """ Prematurely completes the pomodorro in its work phase.
+        """ Completes the pomodorro in its work phase.
         
         If the user wants to complete a pomodorro without having the timer
         run for the work time duration, they select the Done option which
@@ -111,6 +119,11 @@ class Timer:
         self.elapsed_time += int(self.finish_time - self.resume_time)
         self.model.complete_pomodorro(  self.active_pomodorro, self.start_time, 
                                         self.finish_time, self.elapsed_time)
+
+        if self.active_task.repeats == 'once' \
+            and self.active_task.pomodorro_complete \
+            and self.pomodorros_of_same_task == 1: # this is last pomodorro
+            self.model.complete_task(self.active_task.task_id)
         self.begin_rest()
 
     def begin_rest(self):

@@ -4,10 +4,13 @@ class Settings:
         self.pomodorro_length = args["pomodorro_length"] # in minutes
         self.rest_length = args["rest_length"] # in minutes
         self.column_width = args["column_width"]
-
-        self.valid_setting = {
+        self.hide_success = bool(args["hide_success"])
+        
+        self.valid_settings = {
             'pomodorro_length' : int,
-            'rest_length' : int
+            'rest_length' : int,
+            'column_width' : int,
+            'hide_success' : bool
         }
 
     def show(self, options):
@@ -37,7 +40,10 @@ class Settings:
 
         for option in options:
             attr, val = option.split("=")
-            val = self.valid_setting[attr](val)
+            if self.valid_settings[attr] != bool:
+                val = self.valid_settings[attr](val)
+            else:
+                val = True if val == "True" else False
             self.model.settings_set(attr, val)
             print(f"{attr} successfully updated.")
         
@@ -48,5 +54,7 @@ class Settings:
         """
         s = f"""Settings:
         \r\tpomodorro_length = {self.pomodorro_length}
-        \r\trest_length = {self.rest_length}"""
+        \r\trest_length = {self.rest_length}
+        \r\tcolumn_width = {self.column_width}
+        \r\thide_success = {self.hide_success}"""
         return s

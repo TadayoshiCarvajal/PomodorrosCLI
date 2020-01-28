@@ -5,6 +5,7 @@ class Interface:
         """ Creates an interface object used to validate the user
         input and then process the command accordingly"""
         from .error_handler import ErrorHandler
+        from .recurrence_manager import RecurrenceManager
         
         # User settings
         self.settings = settings
@@ -21,6 +22,10 @@ class Interface:
         # Handler of command errors
         self.error_handler = ErrorHandler(settings, model, task_log, pomodorro_log)
 
+        # Handles recurring pomodorros
+        self.recurrence_manager = RecurrenceManager(self.pomodorro_log, self.task_log, self.model)
+
+
     def process_input(self, s):
         """ Validates and handles inputs.
         
@@ -36,12 +41,13 @@ class Interface:
 
         if self.error_handler.valid_input(s):
             self.execute_command(s)
-            print("Success")
+            if not self.settings.hide_success:
+                print("Success")
 
     def parse_input(self, s):
         """ Parses the input array and returns a dictionary containing the values.
         
-        This is an intermediate step used to help make sure commands are in the
+        This is an intermediate step used to help make sure that commands are in the
         specified format. An alias map contained in the ErrorHandler helps to
         normalize accross various acceptable aliases for objects. """
         if not s:
@@ -105,6 +111,8 @@ class Interface:
             self.pomodorro_goal(args)
         if object == 'pomodorro' and action == 'tag':
             self.pomodorro_tag(args)
+        if object == 'pomodorro' and action == 'edit':
+            self.pomodorro_edit(args)
         if object == 'timer' and action == 'set':
             self.timer_set_active(args)
 
@@ -143,7 +151,9 @@ class Interface:
         """ Modify a task's information."""
         task_id = args["object_id"]
         options = args["options"]
-        self.task_log.edit_task(task_id, options)
+        changed_repeats_type, new_repeats = self.task_log.edit_task(task_id, options)
+        if changed_repeats_type:
+            self.recurrence_manager.update_edited_task(task_id, new_repeats)
 
     def pomlog_show(self, args):
         """ Display the pomodorros."""
@@ -180,9 +190,15 @@ class Interface:
         options = args["options"]
         self.pomodorro_log.set_goal(pom_id, options)
 
+    def pomodorro_edit(self, args):
+        """ Modify the selected pomodorro attribute."""
+        pom_id = args["object_id"]
+        options = args["options"]
+        self.pomodorro_log.edit(pom_id, options)
+
     def timer_set_active(self, args):
         """ Set a pomodorro to active, and enter timer mode."""
         pom_id = args["object_id"]
         active_pomodorro = self.pomodorro_log.log[pom_id]
-        t = Timer(self.model, self.pomodorro_log, active_pomodorro)
+        t = Timer(self.model, self.task_log, self.pomodorro_log, active_pomodorro)
         t.launch_timer_menu()

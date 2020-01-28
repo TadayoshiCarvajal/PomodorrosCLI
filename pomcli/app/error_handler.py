@@ -10,11 +10,7 @@ class ErrorHandler:
         self.model = model
 
         # The values that can be modified by a user.
-        self.valid_settings = {
-            'pomodorro_length' : int,
-            'rest_length' : int,
-            'column_width' : int
-        }
+        self.valid_settings = self.settings.valid_settings
 
         # The valid objects command may involve.
         self.valid_objects = {   
@@ -45,13 +41,23 @@ class ErrorHandler:
                                 "tasklog" : {"show", "add", "delete"},
                                 "pomlog" : {"show"},
                                 "task" : {"show", "add", "delete", "edit"},
-                                "pomodorro" : {"show", "tag", "goal"},
+                                "pomodorro" : {"show", "tag", "goal", "edit"},
                                 "timer" : {"set"}
                             }
 
         # The attributes of a task that a user may modify.
         self.editable_task_attributes = {"name" : str, 
-                                        "repeats" : str}
+                                        "repeats" : str,
+                                        "priority" : int,
+                                        "pomodorro_length":int,
+                                        "rest_length":int,
+                                        "pomodorro_complete": bool}
+
+        self.editable_pomodorro_attributes = {"pomodorro_length" : int,
+                                              "rest_length" : int,
+                                              "tag" : str,
+                                              "goal" : str,
+                                              "due" : str}
 
         # A listing of the various error messages the ErrorHandler object might output.
         self.message = {
@@ -74,8 +80,14 @@ class ErrorHandler:
             "invalid_repeats" : f"Value of repeats must be once, daily, weekly, monthly, or yearly.",
             "already_active" : f"There is already an active pomodorro.",
             "already_completed" : f"That pomodorro has already been completed.",
-            "invalid_option" : f"An invalid option was detected."
-            }
+            "invalid_option" : f"An invalid option was detected.",
+            "invalid_priority" : f"A task's priority value must be an integer in the range 1-10 inclusive.",
+            "invalid_minute" : f"A time value must be an integer in the range (0, 24*60].",
+            "doesnt_have_pomodorros" : f"This task does not have any existing pomodorros.",
+            "task_completed" : f"That task is already completed.",
+            "repeats_not_once" : f"Repeats must = once to specify due.",
+            "invalid_date" : f"The due value must be a valid date (Y-M-D) and time (H:M).",
+            "date_is_past" : f"A due date must be in the future."}
 
     # Helper functions for error checking
     def valid_input(self, args):
@@ -177,9 +189,9 @@ class ErrorHandler:
         if object == 'task' and action == 'show':
             return self.handle_show_task_errors(options)
         if object == 'task' and action == 'edit':
-            return self.handle_edit_task_errors(options)
+            return self.handle_edit_task_errors(object_id, options)
         if object == 'task' and action == 'add':
-            return self.handle_pomodorro_add_errors(options)
+            return self.handle_pomodorro_add_errors(object_id, options)
         if object == 'task' and action == 'delete':
             return self.handle_pomodorro_delete_errors(options)
 
@@ -194,6 +206,8 @@ class ErrorHandler:
             return self.handle_set_tag_errors(options)
         if object == 'pomodorro' and action == 'goal':
             return self.handle_set_goal_errors(options)
+        if object == 'pomodorro' and action == 'edit':
+            return self.handle_edit_pomodorro_errors(object_id, options)
 
         # Timer commands
         if object == 'timer' and action == 'set':
@@ -286,7 +300,7 @@ class ErrorHandler:
         return False
 
     def invalid_option_with_equal(self, option):
-        """ Checks assignment options are valid.
+        """ Checks if a single assignment option is valid.
         
         Assignment options, options in the form <attribute>=<value> are valid
         iff they have length 2 when split using the = as the delimiter."""
@@ -342,6 +356,90 @@ class ErrorHandler:
 
         return self.pomodorro_log.log[name].pom_id
 
+    def invalid_priority_value(self, priority):
+        """ Checks to see a valid value of priorty was assigned.
+        
+        Tasks priorities must be an integer in the range 1-10, inclusive."""
+        try:
+            priority = int(priority)
+            if priority > 10 or priority < 1:
+                print(self.message["invalid_priority"])
+                return True
+        except ValueError:
+            print(self.message["invalid_priority"])
+            return True
+
+        return False
+
+    def invalid_minute_value(self, minute):
+        """ Checks to see a valid value of time was assigned.
+        
+        Pomodorro times must be an integer in the (0, 24 * 60]."""
+        try:
+            time = int(minute)
+            if time <= 0 or  time > 24 * 60:
+                print(self.message["invalid_minute"])
+                return True
+        except ValueError:
+            print(self.message["invalid_minute"])
+            return True
+        return False
+
+    def doesnt_have_pomodorros(self, task_id):
+        """ Checks to see if a task has not completed and not expired pomodorros assigned to it."""
+
+        if task_id.isdigit():
+            task_name = self.task_log.log[task_id].name
+        else:
+            task_name = task_id
+
+        for pom in self.pomodorro_log.log:
+            pomodorro = self.pomodorro_log.log[pom]
+            if pomodorro.task == task_name:
+                return False
+
+        print(self.message["doesnt_have_pomodorros"])
+        return True
+
+    def is_completed_task(self, task_id):
+        if self.task_log.log[task_id].completed:
+            print(self.message['task_completed'])
+            return True
+
+        return False
+
+    def task_doesnt_repeat_once(self, task_id):
+        """ Checks to see that the task has repeats=once."""
+        repeats = self.task_log.log[task_id].repeats
+        if repeats != 'once':
+            print(self.message['repeats_not_once'])
+            return True
+        return False
+
+    def invalid_date(self, due):
+        """ Checks to see that the given due date is valid."""
+        import datetime
+
+        try:
+            date = datetime.datetime.strptime(due, '%Y-%m-%d %H:%M:%S.%f')
+        except:
+            try: 
+                date = datetime.datetime.strptime(due, '%Y-%m-%d %H:%M:%S')
+            except:
+                try: 
+                    date = datetime.datetime.strptime(due, '%Y-%m-%d %H:%M')
+                except:
+                    print(self.message['invalid_date'])
+                    return True
+        
+        now = datetime.datetime.now()
+        if now > date:
+            print(self.message["date_is_past"])
+            return True
+
+        return False
+
+
     # Settings command related Errors
     def handle_settings_show_errors(self, options):
         """ Handle the specific errors involved in the settings show command.
@@ -364,16 +462,10 @@ class ErrorHandler:
         which is not a valid attribute of the Settings class, or the option
         specifies a type which is invalid fort the specified attribute. """
 
-        if self.has_no_options: return True
-
+        if self.has_no_options(options): return True
         for option in options:
-            option_components = option.split("=")
-            if len(option_components) != 2:
-                print(f"Options must be in the form: <attribute>=<value>.")
-                return True
-
-            attr = option_components[0]
-            val = option_components[1]
+            if self.invalid_option_with_equal(option): return True
+            attr, val = option.split('=')
 
             if attr not in self.valid_settings:
                 print(f"{attr} is not a valid attribute.")
@@ -406,21 +498,51 @@ class ErrorHandler:
     def handle_task_add_errors(self, options):
         """ Handles the potential errors when adding tasks.
         
-        The command tasklog add 'name' 'repeats', can take between 2 options:
-        The task name and the repeats value. An error can occur if the user
-        uses a task name which already exists which is not allowed since task
-        names must be unique, or an invalid number of arguments are specified."""
+        The command tasklog add, can take between 0-5 options:
+        The task name, the repeats value, the task priority,
+        the default pomodorro length, and the default rest length. 
+        An error can occur if the user uses a task name which already 
+        exists which is not allowed since task names must be unique, 
+        or an invalid number of arguments are specified."""
 
         if self.has_no_options(options): return True
 
-        if self.has_invalid_size(options, max_length=2): return True
+        if self.has_invalid_size(options, max_length=5): return True
+        name_in = False
+        for option in options:
+            if self.invalid_option_with_equal(option): return True
 
-        if self.is_existing_task(options[0]): return True
-        
-        if self.is_invalid_identifier(options[0]): return True
+            attribute, value = option.split("=")
+            if attribute not in self.editable_task_attributes:
+                print(f"{attribute} is not an editable task attribute.")
+                return True
 
-        if len(options) == 2:
-            if self.invalid_repeats_value(options[1]): return True
+            if attribute == 'name':
+                name_in = True
+                if self.is_existing_task(value): return True
+                if self.is_invalid_identifier(value): return True
+
+            if attribute == 'repeats':
+                if self.invalid_repeats_value(value): return True
+            
+            if attribute == 'priority':
+                if self.invalid_priority_value(value): return True
+            
+            if attribute in {"pomodorro_length", "rest_length"}:
+                if self.invalid_minute_value(value): return True
+            
+            if attribute == 'pomodorro_complete':
+                if task_id not in self.tasklog.log or self.tasklog.log[task_id].repeats != 'once': 
+                    print(f"pomodorro_complete only applies when repeats=once.")
+                    return True
+                if value not in {'True', 'False'}: 
+                    print(f"pomodorro_complete may only be True or False.")
+                    return True
+                if self.doesnt_have_pomodorros(task_id): return True
+
+        if not name_in: 
+            print(f"name attribute is missing.")
+            return True
 
         return False
 
@@ -429,7 +551,7 @@ class ErrorHandler:
         
         The deletion command is tasklog delete task_id, where task_id can
         be the actual task_id or the name of the task. The errors that might
-        occur are the user does not specify a task_id or too options are specified,
+        occur are the user does not specify a task_id or too many options are specified,
         and the other error is the id that is passed is not a valid task_id or name."""
 
         if self.has_invalid_size(options, required_length=1): return True
@@ -456,7 +578,7 @@ class ErrorHandler:
 
         return False
 
-    def handle_edit_task_errors(self, options):
+    def handle_edit_task_errors(self, task_id, options):
         """ Handles the potential error that occur when deleting.
         
         The deletion command is tasklog delete task_id, where task_id can
@@ -464,7 +586,9 @@ class ErrorHandler:
         occur are the user does not specify a task_id or too options are specified,
         and the other error is the id that is passed is not a valid task_id or name."""
 
-        if self.has_invalid_size(options, min_length=1, max_length=2): return True
+        if self.has_invalid_size(options, min_length=1, max_length=5): return True
+
+        if self.is_completed_task(task_id): return True
 
         for option in options:
             if self.invalid_option_with_equal(option): return True
@@ -480,10 +604,25 @@ class ErrorHandler:
 
             if attribute == 'repeats':
                 if self.invalid_repeats_value(value): return True
+            
+            if attribute == 'priority':
+                if self.invalid_priority_value(value): return True
+
+            if attribute in {"pomodorro_length", "rest_length"}:
+                if self.invalid_minute_value(value): return True
+
+            if attribute == 'pomodorro_complete':
+                if self.task_log.log[task_id].repeats != 'once': 
+                    print(f"pomodorro_complete only applies when repeats=once.")
+                    return True
+                if value not in {'True', 'False'}: 
+                    print(f"pomodorro_complete may only be True or False.")
+                    return True
+                if self.doesnt_have_pomodorros(task_id): return True
 
         return False
 
-    def handle_pomodorro_add_errors(self, options):
+    def handle_pomodorro_add_errors(self, task_id, options):
         """ Handles the potential errors when adding pomodorros.
         
         The command task add 'tag' 'goal', can take between 1 and 2 options:
@@ -493,17 +632,26 @@ class ErrorHandler:
         or the options are not in the form argument=value, or the arguments
         and values in the option are not valid, or the task_id is not valid."""
 
-        if self.has_invalid_size(options, max_length=2): return True
+        if self.has_invalid_size(options, max_length=4): return True
+
+        if self.is_completed_task(task_id): return True
 
         for option in options:
             if self.invalid_option_with_equal(option): return True
+            attribute, value = option.split("=")
+            if attribute not in self.editable_pomodorro_attributes:
+                print(f"{attribute} is not an editable pomodorro attribute.")
+                return True
 
         specified_options = {option.split("=")[0] : option.split("=")[1] for option in options }
         tag = specified_options["tag"] if "tag" in specified_options else None
         goal = specified_options["goal"] if "goal" in specified_options else None
+        due = specified_options["due"] if "due" in specified_options else None
 
         if tag and self.is_existing_pomodorro(tag): return True
         if tag and self.is_invalid_identifier(tag): return True
+        if due and self.task_doesnt_repeat_once(task_id): return True
+        if due and self.invalid_date(due): return True
 
         return False
 
@@ -576,6 +724,38 @@ class ErrorHandler:
         for a pomodorro."""
 
         if self.has_no_options(options): return True
+
+        return False
+
+    def handle_edit_pomodorro_errors(self, pom_id, options):
+        """ Handles the potential errors that occur when editting the attributes
+        for a pomodorro."""
+
+        if self.has_no_options(options): return True
+
+        for option in options:
+            if self.invalid_option_with_equal(option): return True
+
+            attribute, value = option.split("=")
+            if attribute not in self.editable_pomodorro_attributes:
+                print(f"{attribute} is not an editable pomodorro attribute.")
+                return True
+
+            try: # convert to type of editable_pomodorro_attributes. If ValueError error, invalid value.
+                converted = self.editable_pomodorro_attributes[attribute](value)
+            except ValueError:
+                print(f"{attribute} attribute requires values of type {self.editable_pomodorro_attributes[attribute]}.")
+                return True
+
+            if attribute == 'tag':
+                if self.is_existing_task(value): return True
+                if self.is_invalid_identifier(value): return True
+
+            if attribute == 'due':
+                task_id = self.pomodorro_log.log[pom_id].task
+                task_id = self.task_log.log[task_id].task_id
+                if self.task_doesnt_repeat_once(task_id): return True
+                if self.invalid_date(value): return True
 
         return False
 

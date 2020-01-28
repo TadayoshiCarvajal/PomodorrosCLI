@@ -16,11 +16,11 @@ class TestTaskLog(unittest.TestCase):
         from datetime import datetime
 
         self.tasks = [
-            [1, "Task 1", "daily", datetime.now(), datetime.now(), False, False],
-            [2, "Task 2", "daily", datetime.now(), datetime.now(), False, True],
-            [3, "Task 3", "daily", datetime.now(), datetime.now(), True, False],
-            [4, "Task 4", "daily", datetime.now(), datetime.now(), True, True],
-            [5, "Task 5", "daily", datetime.now(), datetime.now(), False, True],
+            [1, "Task 1", "daily", 5, 25, 5, "", False, False],
+            [2, "Task 2", "daily", 5, 25, 5, "", False, False],
+            [3, "Task 3", "daily", 5, 25, 5, "", False, False],
+            [4, "Task 4", "daily", 5, 25, 5, "", False, False],
+            [5, "Task 5", "daily", 5, 25, 5, "", False, False],
         ]
 
         self.model = None
@@ -34,8 +34,10 @@ class TestTaskLog(unittest.TestCase):
             self.assertEqual(self.tl[i].task_id, task[0])
             self.assertEqual(self.tl[i].name, task[1])
             self.assertEqual(self.tl[i].repeats, task[2])
-            self.assertEqual(self.tl[i].last_refresh, task[3])
-            self.assertEqual(self.tl[i].next_refresh, task[4])
-            self.assertEqual(self.tl[i].deleted, task[5])
-            self.assertEqual(self.tl[i].completed, task[6])
+            self.assertEqual(self.tl[i].priority, task[3])
+            self.assertEqual(self.tl[i].pomodorro_length, task[4])
+            self.assertEqual(self.tl[i].rest_length, task[5])
+            self.assertEqual(self.tl[i].refresh_frequency, task[6])
+            self.assertEqual(self.tl[i].completed, task[7])
+            self.assertEqual(self.tl[i].pomodorro_complete, task[8])
             i += 1

@@ -14,7 +14,8 @@ class Model:
                 name TEXT,
                 pomodorro_length INTEGER,
                 rest_length INTEGER,
-                column_width INTEGER);""")
+                column_width INTEGER,
+                hide_success INTEGER DEFAULT 0);""")
         
         self.c.execute(
             """ INSERT INTO settings (name, pomodorro_length, rest_length, column_width)
@@ -25,10 +26,12 @@ class Model:
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
                 repeats TEXT,
-                last_refresh TEXT DEFAULT NULL,
-                next_refresh TEXT DEFAULT NULL,
-                deleted INTEGER DEFAULT 0,
-                completed INTEGER DEFAULT 0);""")
+                priority INTEGER DEFAULT 5,
+                pomodorro_length INTEGER,
+                rest_length INTEGER,
+                refresh_frequency TEXT,
+                completed INTEGER DEFAULT 0,
+                pomodorro_complete DEFAULT 0);""")
 
         self.c.execute(
             """ CREATE TABLE pomodorro(
@@ -43,25 +46,26 @@ class Model:
                 start_time TEXT DEFAULT NULL,
                 end_time TEXT DEFAULT NULL,
                 time_spent INTEGER DEFAULT 0,
-                historic_tag TEXT DEFAULT NULL);""")
+                historic_tag TEXT DEFAULT NULL,
+                expired INTEGER DEFAULT 0,
+                due TEXT);""")
 
         self.conn.commit()
-
-        print("Successfully intialized PomodorrosCLI!")
 
     def get_settings(self):
         """ Fetches the user settings from the database."""
 
         from .settings import Settings
         self.c.execute(
-            """ SELECT pomodorro_length, rest_length, column_width
+            """ SELECT pomodorro_length, rest_length, column_width, hide_success
                 FROM settings
                 WHERE name = 'main'""")
         
         vals = self.c.fetchone()
         args = {"pomodorro_length" : vals[0],
                 "rest_length" : vals[1],
-                "column_width" : vals[2]}
+                "column_width" : vals[2],
+                "hide_success" : vals[3]}
         return Settings(args, self)
 
     def get_pomodorro_log(self, settings, task_log):
@@ -89,8 +93,7 @@ class Model:
         from .task_log import TaskLog
 
         self.c.execute("""SELECT * 
-                          FROM task
-                          WHERE deleted = 0;""")
+                          FROM task""")
         tasks = self.c.fetchall()
         task_log = TaskLog(tasks, self, settings)
         return task_log
@@ -107,11 +110,11 @@ class Model:
         self.c.execute(q)
         self.conn.commit()
 
-    def add_task(self, task_name, repeats):
+    def add_task(self, task_name, repeats, priority, pomodorro_length, rest_length):
         """ Adds a new row to the task table."""
 
-        q = f"""INSERT INTO task (name, repeats)
-                 VALUES ( '{task_name}', '{repeats}');"""
+        q = f"""INSERT INTO task (name, repeats, priority, pomodorro_length, rest_length)
+                VALUES ( '{task_name}', '{repeats}', {priority}, {pomodorro_length}, {rest_length});"""
         self.c.execute(q)
         self.conn.commit()
 
@@ -121,8 +124,7 @@ class Model:
         Deletes a row from the task table and deletes all of the 
         pomodorros in the pomodorro table associated with that task."""
 
-        q1 = f"""UPDATE task
-                 SET deleted = 1
+        q1 = f"""DELETE FROM task
                  WHERE task_id = {task_id}"""
         q2 = f"""DELETE FROM pomodorro
                  WHERE task_id = {task_id}"""
@@ -130,25 +132,31 @@ class Model:
         self.c.execute(q2)
         self.conn.commit()
 
-    def edit_task(self, task_id, new_name, new_repeats):
+    def edit_task(self, task_id, new_name, new_repeats, new_priority, 
+            new_pomodorro_length, new_rest_length, new_pomodorro_complete):
         """ Updates the values of a task with the new information."""
 
         q = f"""UPDATE task
                 SET name = '{new_name}',
-                    repeats = '{new_repeats}'
+                    repeats = '{new_repeats}',
+                    priority = {new_priority},
+                    pomodorro_length = {new_pomodorro_length},
+                    rest_length = {new_rest_length},
+                    pomodorro_complete = {new_pomodorro_complete}
                 WHERE task_id = {task_id}"""
         self.c.execute(q)
         self.conn.commit()
 
-    def add_pomodorro(self, task_id, tag, length, rest, goal):
+    def add_pomodorro(self, task_id, tag, length, rest, goal, due):
         """ Adds a row to the pomodorro table."""
-
+        import datetime
+        #due = datetime.datetime.now()
         if tag:
-            q = f"""INSERT INTO pomodorro (tag, task_id, length, rest, goal)
-                    VALUES ( '{tag}', '{task_id}', {length}, {rest}, '{goal}');"""
+            q = f"""INSERT INTO pomodorro (tag, task_id, length, rest, goal, due)
+                    VALUES ( '{tag}', '{task_id}', {length}, {rest}, '{goal}', '{due}');"""
         else:
-            q = f"""INSERT INTO pomodorro (task_id, length, rest, goal)
-                    VALUES ( '{task_id}', {length}, {rest}, '{goal}');"""
+            q = f"""INSERT INTO pomodorro (task_id, length, rest, goal, due)
+                    VALUES ( '{task_id}', {length}, {rest}, '{goal}', '{due}');"""
         self.c.execute(q)
         self.conn.commit()
 
@@ -167,6 +175,7 @@ class Model:
         q = f"""UPDATE pomodorro
                 SET tag = '{new_tag}'
                 WHERE pom_id = {pom_id}"""
+                
         self.c.execute(q)
         self.conn.commit()
 
@@ -175,6 +184,19 @@ class Model:
 
         q = f"""UPDATE pomodorro
                 SET goal = '{new_goal}'
+                WHERE pom_id = {pom_id}"""
+        self.c.execute(q)
+        self.conn.commit()
+
+    def edit_pomodorro(self, pom_id, new_tag, new_goal, new_length, new_rest, new_due):
+        """ Updates the values of a task with the new information."""
+
+        q = f"""UPDATE pomodorro
+                SET tag = '{new_tag}',
+                    goal = '{new_goal}',
+                    length = {new_length},
+                    rest = {new_rest},
+                    due = '{new_due}'
                 WHERE pom_id = {pom_id}"""
         self.c.execute(q)
         self.conn.commit()
@@ -256,6 +278,52 @@ class Model:
                     tag = NULL,
                     historic_tag = '{historic_tag}'
                 WHERE pom_id = {pom_id}"""
+        self.c.execute(q)
+        self.conn.commit()
+
+    def complete_task(self, task_id):
+        """ If a task has repeats=once and pomodorro_complete=True,
+        this method marks the task completed if there are no more 
+        pomodorros remaining."""
+        q = f"""UPDATE task
+                SET completed = 1
+                WHERE task_id = {task_id}"""
+        self.c.execute(q)
+        self.conn.commit()
+
+    def expire_pomodorro(self, pomodorro, task_id, pomodorro_log):
+        """ Marks a pomodorro expired and replaces it with a new pomodorro. """
+        q = f"""UPDATE pomodorro
+                SET tag = NULL,
+                    historic_tag = '{pomodorro.tag}',
+                    expired = 1
+                WHERE pom_id = {pomodorro.pom_id}"""
+
+        self.c.execute(q)
+        self.conn.commit()
+
+        tag = pomodorro.tag
+        goal = pomodorro.goal
+        length = pomodorro.length // 60
+        rest = pomodorro.rest // 60
+        options = []
+        if tag:
+            options.append(f"tag={tag}")
+        if goal:
+            options.append(f"goal={goal}")
+        options.append(f"pomodorro_length={length}")
+        options.append(f"rest_length={rest}")
+        pomodorro_log.add(task_id, options)
+
+    def edit_pomodorro_due(self, task_id, new_due):
+        """ Updates the values of a task with the new information."""
+
+        q = f"""UPDATE pomodorro
+                SET due = '{new_due}'
+                WHERE task_id = {task_id} 
+                AND expired != 1 
+                AND completed != 1"""
+
         self.c.execute(q)
         self.conn.commit()
 

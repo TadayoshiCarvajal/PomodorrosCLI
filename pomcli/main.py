@@ -2,6 +2,7 @@ import sys
 import os
 from app.interface import Interface
 from app.model import Model
+from app.recurrence_manager import RecurrenceManager
 import sqlite3
 """
 This is the driver program of the pomcli application.
@@ -26,11 +27,20 @@ if __name__ == "__main__":
     try: 
         # First time using app
         model.initialize_tables()
+        print("Successfully intialized PomodorrosCLI!")
 
     except sqlite3.OperationalError:
         # Subsequent uses of app
         settings = model.get_settings()
         task_log = model.get_task_log(settings)
         pomodorro_log = model.get_pomodorro_log(settings, task_log)
+
+        # RecurrenceManager manages updating for the recurring pomodorros
+        recurrence_manager = RecurrenceManager(pomodorro_log, task_log, model)
+        recurrence_manager.update_pomodorros()
+
+        # Reload pomodorro_log after recurrence manager has update the pomodorros
+        pomodorro_log = model.get_pomodorro_log(settings, task_log)
+
         ui = Interface(task_log, pomodorro_log, settings, model)
         ui.process_input(sys.argv[1:])

@@ -22,6 +22,7 @@ class PomodorroLog:
         pom_id = pom[0]
         tag = pom[1]
         task_id = self.task_log.log[pom[2]].name
+        priority = self.task_log.log[pom[2]].priority
         length = pom[3]
         rest = pom[4]
         goal = pom[5]
@@ -31,10 +32,12 @@ class PomodorroLog:
         end_time = pom[9]
         time_spent = pom[10]
         historic_tag = pom[11]
-
-        return Pomodorro(pom_id, tag, task_id, length, rest, goal, 
+        expired = pom[12]
+        due = pom[13]
+        
+        return Pomodorro(pom_id, tag, task_id, priority, length, rest, goal, 
                         active, completed, start_time, end_time, 
-                        time_spent, historic_tag)
+                        time_spent, historic_tag, expired, due)
 
     def generate_pomodorros(self, pomodorros):
         """ Adds the pomodorros to the log dictionary. 
@@ -62,42 +65,46 @@ class PomodorroLog:
 
         print("Pomodorro Log:")
         cw = self.settings.column_width
-        header = f"{'Task':^{cw}s}|{'PomID':^{cw}s}|{'Tag':^{cw}s}|{'Goal':^{cw}s}"
+        header = f"{'Task':^{cw}s}|{'PomID':^{cw}s}|{'Tag':^{cw}s}|{'Priority':^{cw}s}|{'Length':^{cw}s}|{'Rest':^{cw}s}|{'Goal':^{cw}s}"
         print(header)
-        print("-"*(4*cw+3))
+        N = header.count('|') + 1
+        print("-"*(N*cw+(N-1)))
 
         history_mode = False
         if options and options[0] == 'history':
             history_mode = True
 
-        for pom_id in self.ids:
-            pomodorro = self.log[pom_id]
+        pomodorros = sorted([self.log[pom_id] for pom_id in self.ids], key=lambda x: x.priority, reverse=True)
+        for pomodorro in pomodorros:
 
-            if not history_mode and not pomodorro.completed:
+            if not history_mode and not pomodorro.completed and not pomodorro.expired:
                 print(pomodorro.__str__(self.settings))
             elif history_mode and pomodorro.completed:
                 print(pomodorro.__str__(self.settings, history=True))
-
+            
     def add(self, task_id, options):
         """ Adds a Pomodorro to the specified Task.
         
-        When pomodorros are added, they can also be created with a goal
-        and a tag. A Goal is a string that describes what the user wishes
-        to accomplish with this pomodorro. The tag is a nickname for the 
-        Pomodorro to make referring to it more intuitive (as opposed to 
-        using pom_id)."""
+        When pomodorros are added, they can also be created with a goal, a tag,
+        a pomodorro length, and a rest length. A Goal is a string that describes 
+        what the user wishes to accomplish with this pomodorro. The tag is a nickname 
+        for the Pomodorro to make referring to it more intuitive (as opposed to 
+        using the pom_id)."""
 
-        # convert from minutes to seconds:
-        length, rest = self.settings.pomodorro_length*60, self.settings.rest_length*60 
         if task_id in self.task_log.names:
             task_id = int(self.task_log.log[task_id].task_id)
-        if not options: # add a pomodorro without tag or goal data.
-            self.model.add_pomodorro(task_id, "", length, rest, "")
-        else:
-            specified_options = {option.split("=")[0] : option.split("=")[1] for option in options }
-            tag = specified_options["tag"] if "tag" in specified_options else ""
-            goal = specified_options["goal"] if "goal" in specified_options else ""
-            self.model.add_pomodorro(task_id, tag, length, rest, goal)
+        task_repeats = self.task_log.log[task_id].repeats
+        # convert from minutes to seconds
+        length, rest = self.task_log.log[task_id].pomodorro_length*60, self.task_log.log[task_id].rest_length*60 
+        specified_options = {option.split("=")[0] : option.split("=")[1] for option in options }
+        tag = specified_options["tag"] if "tag" in specified_options else ""
+        goal = specified_options["goal"] if "goal" in specified_options else ""
+        length = int(specified_options["pomodorro_length"])*60 if "pomodorro_length" in specified_options else length
+        rest = int(specified_options["rest_length"])*60 if "rest_length" in specified_options else rest
+        once_due = specified_options['due'] if 'due' in specified_options else None
+        due = self.get_due(task_repeats, once_due)
+
+        self.model.add_pomodorro(task_id, tag, length, rest, goal, due)
 
     def delete(self, task_id, options):
         """ Deletes the specified pomodorro.
@@ -152,6 +159,83 @@ class PomodorroLog:
 
         new_goal = " ".join(options)
         self.model.change_goal(pom_id, new_goal)
+
+    def edit(self, pom_id, options):
+        """ Changes the specified pomodorros's goal to the specified goal.
+        
+        A valid tag must not be a tag that is already in use. """
+
+        if pom_id in self.tags:
+            pom_id = int(self.log[pom_id].pom_id)
+
+        task_id = self.task_log.log[self.log[pom_id].task].task_id
+        if task_id in self.task_log.names:
+            task_id = int(self.task_log.log[task_id].task_id)
+        task_repeats = self.task_log.log[task_id].repeats
+
+        # Get current pomodorro data
+        tag = self.log[pom_id].tag
+        goal = self.log[pom_id].goal
+        length = self.log[pom_id].length
+        rest = self.log[pom_id].rest
+        due = self.log[pom_id].due
+
+        # Get new pomodorro data
+        specified_options = {option.split("=")[0]:option.split("=")[1] for option in options}
+        tag = specified_options['tag'] if 'tag' in specified_options else tag
+        goal = specified_options['goal'] if 'goal' in specified_options else goal
+        length = int(specified_options['pomodorro_length'])*60 if 'pomodorro_length' in specified_options else length
+        rest = int(specified_options['rest_length'])*60 if 'rest_length' in specified_options else rest
+        once_due = specified_options['due'] if 'due' in specified_options else None
+        if once_due:
+            due = self.get_due(task_repeats, once_due)
+
+        self.model.edit_pomodorro(pom_id, tag, goal, length, rest, due)
+
+    def get_due(self, repeats, once_due):
+        """ Returns the due date of the pomodorro.
+        
+        Uses the repeats and repeats_frequency values of the task to 
+        calculate the due date for the pomodorro."""
+        import datetime
+        import calendar
+
+        # if once, due None
+        if repeats == 'once':
+            try:
+                return datetime.datetime.strptime(once_due, '%Y-%m-%d %H:%M:%S.%f')
+            except:
+                try:
+                    return datetime.datetime.strptime(once_due, '%Y-%m-%d %H:%M:%S')
+                except:
+                    try:
+                        return datetime.datetime.strptime(once_due, '%Y-%m-%d %H:%M')
+                    except:
+                        return None
+
+        # If daily, due midnight tonight.
+        due = datetime.datetime.combine(datetime.datetime.today(), datetime.time(23, 59, 59, 999999))
+
+        # If weekly, due midnight of this Sunday.
+        if repeats == 'weekly':
+            dow = datetime.datetime.today().weekday()
+            td = 6 - dow # 0 if sunday, 6 if monday
+            due += datetime.timedelta(days=td)
+
+        # If monthly, due midnight of last day of month.
+        elif repeats == 'monthly':
+            year, month, day = due.year, due.month, due.day
+            month_range = calendar.monthrange(year, month)
+            last_day = month_range[-1]
+            td = last_day - day
+            due += datetime.timedelta(days=td)
+
+        # If yearly, due midnight of last day of the year.
+        elif repeats == 'yearly':
+            last_day = datetime.datetime(due.year, 12, 31)
+            td = (last_day - due).days + 1
+            due += datetime.timedelta(days=td)
+        return due 
 
     def __getitem__(self, name):
         return self.log[name]

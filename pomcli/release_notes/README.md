@@ -1,3 +1,17 @@
+# PomodorrosCLI 0.2.0 Release Notes
+## January 28, 2020
+
+## Features
+* **Recurring Pomodorros** - Daily, Weekly, Monthly, and Yearly repeating Tasks will automatically expire and refresh Pomodorros based on the repeats value. Pomodorros now have due and expired variables to account for this change. Pomodorros that are not completed before the due date and time will be marked expired.
+* **Once Due** - Pomodorros belonging to tasks that repeat once also have a due value and expired value, but the due can be specified to any date in the future by the user. It will also be marked expired when this date passes and the pomodorro has not been completed.
+* **Task Pomodorro Length and Rest Lengths** - You can now specify a default pomodorro and rest length for each Task.
+* **Priority** - You can now specify a priority for each Task which determines the ordering of the TaskLog and PomodorroLog.
+* **More Settings** - Added settings: column_width and hide success. See the manual for more information.
+* **Pomodorro-based Completion** - Added the ability to set nonrepeating (once) tasks to pomodorro_complete, which automatically completes the task once its final pomodorro is completed.
+* **Unit Tests** - Added unit tests for testing the methods of the Model class. Many more unittests to be added in 0.3.0 ...
+
+> `Note`: for additional information about these changes please consult the [user manual](../manual/README.md).
+
 # PomodorrosCLI 0.1.0 Release Notes
 ## December 3, 2019
 

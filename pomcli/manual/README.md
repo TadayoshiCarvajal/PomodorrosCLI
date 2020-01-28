@@ -26,6 +26,7 @@
         + [show](#pomodorro-show)
         + [tag](#pomodorro-tag)
         + [goal](#pomodorro-goal)
+        + [edit](#pomodorro-edit)
     + [**Timer**](#timer)
         + [set](#timer-set)
 * [Coming Soon...](#coming-soon...)
@@ -109,6 +110,10 @@ The remainder of this manual will focus on the specifics of which actions and op
 
 `rest_length` : int - the number of minutes long for the rest phase of a pomodorro
 
+`column_width` : int - the amount of space each column occupies in the PomodorroLog and TaskLog show commands output.
+
+`hide_success` : bool - a boolean that will hide the "Success" message that gets printed after each successful pomcli command.
+
 #### Settings Set
 
 This command allows the user to change the values of the `settings`.
@@ -158,9 +163,29 @@ $ pomcli tasklog show
 
 This command allows the user to create a `Task` by adding it to the `tasklog`:
 ```
-$ pomcli tasklog add TaskName
+$ pomcli tasklog add name=TaskName
 ```
-This creates a `Task` with the name *TaskName*.
+This creates a `Task` with the name *TaskName*. The following attributes can be specified using the attribute=value format:
+```
+    name - a string representing the name of the task.
+    repeats = {'once', 'daily', 'weekly', 'monthly', 'yearly'}
+    priority = an integer from 1 - 10 (1 is least importance; 10 is most importance)
+    pomodorro_length = an integer representing number of minutes pomodorros of this task last by default.
+    rest_length = an integer representing number of minutes rests of this task last by default.
+```
+As of version `0.2.0`, repeats will enable the following behaviors:
+
+`once` - pomodorros belonging to this task will not repeat, but a due date can be specified and pomodorro_complete can be set to True.
+
+`daily` - pomodorros belonging to this task will expired at midnight of each day if the pomodorro is not completed.
+
+`weekly` - pomodorros belonging to this task will expired at midnight on Sunday of each week if the pomodorro is not completed.
+
+`monthly` - pomodorros belonging to this task will expired at midnight on the last day of each month if the pomodorro is not completed.
+
+`yearly` - pomodorros belonging to this task will expired at midnight December 31st of each year if the pomodorro is not completed.
+
+> `Note`: you may expect customization for when repeating pomodorros expire and refresh in `0.3.0`.
 
 #### TaskLog Delete
 
@@ -211,6 +236,15 @@ $ pomcli task TaskName add tag=PomodorroTag goal="This is the goal."
 
 The above command created a `Pomodorro` with the `pomodorro tag` *PomodorroTag* for the `Task` *TaskName*. It also gave that `Pomodorro` a `goal`, specified by the string *"This is the goal."*.
 
+The following attributes can be specified using the attributes=value format:
+```
+    tag = a string representing a nickname for the pomodorro
+    goal = a string detailing the goal of this pomodorro
+    length = the number of minutes this pomodorro is to last.
+    rest = the number of minutes the rest for this pomodorro is to last.
+    once_due = If the pomodorro belongs to a "once" repeating task, this specifies the date and time the pomodorro is due.
+```
+
 `Pomodorro tags`, aka `tags`, are **not required**. A pomodorro can always be referred to by its `Pomodorro ID`. `Tags` provide a convenient way of referring to a `Pomodorro` without needing to memorize its `pomodorro ID`.
 
 `Pomodorro Goals`, aka `Goals`, are also not required. This means we also could have created a `Pomodorro` using the following command:
@@ -233,7 +267,11 @@ This command allows the user to edit the information belonging to a `Task`.
 ```
 $ pomcli task TaskName edit <attribute>=<value>
 ```
-> `Note`: as of version `0.1.0` only two attributes are available for modification: `name` and `repeats`.
+> `Note`: as of version `0.2.0` all attributes that can be specified with TaskLog Add can be edited.
+
+##### pomodorro_complete
+
+In addition to the attributes that can be determined at Task creation, *pomodorro_complete* is a boolean attribute that can be specified after a task is created, its repeats value is set to 'once', and at least one unexpired and incomplete pomodorro belongs to the task. If *pomodorro_complete*=True, the task will be marked complete once its last pomodorro has been completed.
 
 ### Pomodorro
 
@@ -271,8 +309,15 @@ This command allows the user to set the `goal` belonging to a `Pomodorro`.
 ```
 $ pomcli pom PomodorroTag goal "this is the new goal."
 ```
-
 The `Pomodorro`'s `goal` has now been set to the string *"this is the new goal."*
+
+#### Pomodorro Edit
+
+This command allows the user to set the attributes belonging to a `Pomodorro`.
+```
+$ pomcli pom PomodorroTag edit tag='new tag'
+```
+> `Note`: as of version `0.2.0` all attributes that can be specified with Task Add can be edited with Pomodorro Edit.
 
 ### Timer
 
